@@ -1,9 +1,8 @@
 '''
-Insert items into database
-
-@author: Jimmy Zhou
-@Email: 13273980@qq.com
-@date:  2016-06-24
+@description:   Insert items into json & excel
+@author:        Jimmy Zhou
+@Email:         13273980@qq.com
+@date:          2016-06-24
 '''
 from __future__ import division
 import sys,os.path
@@ -12,13 +11,14 @@ from pysphere.resources import VimService_services as VI
 import pysphere
 import re
 import pprint
+import json
 #import ssl
 #ssl._create_default_https_context = ssl._create_unverified_context
 
 
 import xlsxwriter,xlrd
 
-HOST='192.168.1.9'
+HOST='192.168.1.4'
 USER="root"
 PASSWORD="vmware"
 
@@ -136,8 +136,9 @@ for d, hname in server.get_hosts().items():
 		metricnameZoneDatastoreUsagePercent = dsname.lower() + 'UsagePercent'
 
 	hosts_dict={'hostname':hname.lower(),'NtpConfigServer':NtpConfigServer,'MaintenanceMode':MaintenanceMode,'numCpuCores':HostNumCpuCores, 'hoststatus':HostStatus, 'hostmemoryusage':HostMemoryUsage, 'hostcpuusage':HostCpuUsage, 'hosttotalmemory':HostTotalMemory, 'hostcputotal':HostCpuTotal, 'hostmemoryusagepercent':HostMemoryUsagePercent, 'hostcpuusagepercent':HostCpuUsagePercent, 'hostrunningvms':HostRunningVMS, 'hoststoppedvms':HostStoppedVMS, 'hosttotalvms':HostTotalVMS, 'hostbiosinfo':HostBiosInfo, 'hosttype':HostType,'hostcpuhealthinfo':HostCPUHealthInfo,'capacity':DatastoreCapacity, 'usagePercent':DatastoreUsagePercent}
-
-	print d
+	fl = open('/Users/jcc/PycharmProjects/untitled2/mysite/tools/hosts_info.js', 'w')
+	fl.write(json.dumps(hosts_dict))
+	fl.close()
 	pprint.pprint(hosts_dict)
 
 print '\033[32mVC disconnect successful...\033[0m'
