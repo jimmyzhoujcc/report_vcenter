@@ -3,8 +3,9 @@ from django.db import models
 from django.db.models import Sum
 from pysphere import VIServer, MORTypes, VIProperty
 from optparse import OptionParser
-
-
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+import MySQLdb
 """
 from models import VirtualNic
 from models import Hypervisor
@@ -67,7 +68,7 @@ def get_datastores(server):
         ret_val.append({'name': name,
                         'capacity': capacity,
                         'freeSpace': freeSpace})
-    print ret_val
+    #print ret_val
     return ret_val
 
 
@@ -239,9 +240,45 @@ def get_hardware(server):
             'interfaces': interfaces,
             'datastores': datastores,
         })
-
-    print ret_val
     return ret_val
+
+def insert_record_mysql(ret_val):
+    """Insert record hardware dict to database"""
+    hardware_val = ret_val
+    #print hardware_val
+    for i in hardware_val:
+        #print i
+        for j in i:
+            #print j
+            if j == 'name':
+                name = i[j]
+            if j == 'cpuModel':
+                cpuModel = i[j]
+                #print cpuModel
+            if j == 'numCpuPkgs':
+                numCpuPkgs = i[j]
+                #print numCpuPkgs
+            if j == 'vendor':
+                vendor = i[j]
+                #print vendor
+            if j == 'model':
+                model = i[j]
+                #print model
+        print name
+        print vendor
+        db = MySQLdb.connect("127.0.0.1","root","123.com","vops" )
+        cursor = db.cursor()
+        sql = "INSERT INTO web_hypervisor (name,cpuModel, vendor, model) VALUES ('%s', '%s',  '%s', '%s')" % (name,cpuModel, vendor, model)
+        try:
+            cursor.execute(sql)
+            db.commit()
+            print 'insert database successful'
+        except:
+            db.rollback()
+            print 'insert database fail'
+        db.close()
+
+
 
 if __name__ == '__main__':
     """
@@ -295,9 +332,11 @@ if __name__ == '__main__':
 
     try:
         server = vmware_connect(hostname, user, password)
-        get_hardware(server)
-        get_datastores(server)
-        get_guests(server)
+        hardware = get_hardware(server)
+        #print hardware
+        insert_record_mysql(hardware)
+        #get_datastores(server)
+        #get_guests(server)
 
     except:
         exit(1)
@@ -310,7 +349,7 @@ if __name__ == '__main__':
             if p.Name == 'name':
                 name = p.Val
                 vm = server.get_vm_by_name(name)
-                get_disks(vm)
-                get_vnics(vm)
+                #get_disks(vm)
+                #get_vnics(vm)
 
     server.disconnect()
