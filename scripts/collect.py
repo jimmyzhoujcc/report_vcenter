@@ -6,6 +6,7 @@ from optparse import OptionParser
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 import MySQLdb
+
 """
 from models import VirtualNic
 from models import Hypervisor
