@@ -72,6 +72,39 @@ def get_datastores(server):
     #print ret_val
     return ret_val
 
+def get_lun(server):
+    """Return a list a lun dict with keys canonicalname, capabilities, uuid"""
+    mor, name = server.get_hosts().items()[0]
+    prop = VIProperty(server, mor)
+    ret_val = []
+    for lun in prop.configManager.storageSystem.storageDeviceInfo.scsiLun:
+        canonicalName= lun.canonicalName
+        capabilities = lun.canonicalName
+        uuid= lun.uuid
+        ret_val.append({'canonicalName': canonicalName,
+                        'capabilities': capabilities,
+                        'uuid': uuid})
+    print ret_val
+    return ret_val
+
+def get_multipath(server):
+    """Return a list a lun dict with keys canonicalname, capabilities, uuid"""
+    mor, name = server.get_hosts().items()[0]
+    prop = VIProperty(server, mor)
+    ret_val = []
+    for mp_path in prop.configManager.storageSystem.storageDeviceInfo.multipathInfo.lun:
+        policy = mp_path.policy.policy
+        for mp in mp_path.path:
+            adapter = mp.adapter
+            pathState= mp.pathState
+            state = mp.state
+            ret_val.append({'name':name,
+                            'adapter': adapter,
+                            'pathState': pathState,
+                            'state': state})
+    print policy
+    print ret_val
+    return ret_val
 
 def get_networks(server):
     """Return a list a network dict with keys name, vlanId, vswitchName"""
@@ -333,9 +366,12 @@ if __name__ == '__main__':
 
     try:
         server = vmware_connect(hostname, user, password)
-        hardware = get_hardware(server)
+        #hardware = get_hardware(server)
         #print hardware
-        insert_record_mysql(hardware)
+        #get_networks(server)
+        #get_lun(server)
+        get_multipath(server)
+        #insert_record_mysql(hardware)
         #get_datastores(server)
         #get_guests(server)
 

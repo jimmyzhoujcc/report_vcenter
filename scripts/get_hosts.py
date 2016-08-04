@@ -13,9 +13,10 @@ import re
 import pprint
 import json
 
-#import ssl
-#ssl._create_default_https_context = ssl._create_unverified_context
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
+import MySQLdb
 
 import xlsxwriter,xlrd
 
