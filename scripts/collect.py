@@ -5,7 +5,7 @@ from pysphere import VIServer, MORTypes, VIProperty
 from optparse import OptionParser
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
-import MySQLdb
+#import MySQLdb
 
 """
 from models import VirtualNic
@@ -66,10 +66,12 @@ def get_datastores(server):
         props = VIProperty(server, ds_mor)
         capacity = props.summary.capacity / 1024 / 1024
         freeSpace = props.summary.freeSpace / 1024 / 1024
+        maintenanceMode = props.summary.maintenanceMode
         ret_val.append({'name': name,
+                        'maintenanceMode': maintenanceMode,
                         'capacity': capacity,
                         'freeSpace': freeSpace})
-    #print ret_val
+    print ret_val
     return ret_val
 
 def get_lun(server):
@@ -79,10 +81,12 @@ def get_lun(server):
     ret_val = []
     for lun in prop.configManager.storageSystem.storageDeviceInfo.scsiLun:
         canonicalName= lun.canonicalName
-        capabilities = lun.canonicalName
+        capabilities = lun.capabilities
+        displayname = lun.displayName
         uuid= lun.uuid
         ret_val.append({'canonicalName': canonicalName,
                         'capabilities': capabilities,
+                        'displayname':displayname,
                         'uuid': uuid})
     print ret_val
     return ret_val
@@ -370,9 +374,10 @@ if __name__ == '__main__':
         #print hardware
         #get_networks(server)
         #get_lun(server)
-        get_multipath(server)
+        #get_multipath(server)
         #insert_record_mysql(hardware)
         #get_datastores(server)
+        get_lun(server)
         #get_guests(server)
 
     except:

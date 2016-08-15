@@ -1,10 +1,10 @@
 '''''
 This script just for reserving vm's cpu or memory, the method of definition is always contains special tag.
 Usage:
-    python reservation.py  10.21.138.9 147Testbed5 memory max
-    python reservation.py  10.21.138.9 WIN7-Performance-14-1 cpu 0
-Author: MyCo
-Date: 2014-11-2
+    python reservation.py  192.168.1.4 08server1 memory max
+    python reservation.py  192.168.1.4 CentOS6 cpu 2
+Author: Jimmy Zhou
+Date: 2016-08-13
 '''
 
 import time
@@ -22,7 +22,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 global false, true, null
 
-if len(sys.argv) < 4 or sys.argv[1] == '--help':
+if len(sys.argv) < 5 or sys.argv[1] == '--help':
     print('Usage: python ' + sys.argv[0] + ' <VC-IP> ' + ' <vm-name> ' + ' <cpu/memory> ' + ' <size> ')
     sys.exit(0)
 
@@ -37,6 +37,23 @@ else:
 server = VIServer()
 server.connect(vc, "root", "vmware")
 
+#   UnmountvmfsVolume
+def umountvmfs(server, types, ds_name, level):
+    ds_mor = server.get_datastores()
+    request = VI.UnmountVmfsVolumeRequestMsg()
+    _this = request.new__this(ds_mor._mor)
+    uuid = request.vmfsUuid(ds_mor._mor)
+
+    ret = server._proxy.ReconfigVM_Task(request)._returnval
+
+    task = VITask(ret, server)
+    status = task.wait_for_state([task.STATE_SUCCESS, task.STATE_ERROR])
+    if status == task.STATE_SUCCESS:
+        ret = "VM <" + ds_name + "> successfully reconfigured"
+    elif status == task.STATE_ERROR:
+        print "Error reconfiguring vm <" + ds_name + ">: %s" % task.get_error_message()
+        ret = "Error reconfiguring vm <" + ds_name + ">: %s" % task.get_error_message()
+    return ret
 
 # http://pubs.vmware.com/vsphere-50/index.jsp?topic=%2Fcom.vmware.wssdk.apiref.doc_50%2Fvim.vm.ConfigSpec.html
 def set_vm_reservation(server, types, vm_name, reservation, level):
@@ -63,6 +80,7 @@ def set_vm_reservation(server, types, vm_name, reservation, level):
         allocation = spec.new_cpuAllocation()
 
         # cpu allocation settings
+
     allocation.set_element_expandableReservation("true")  # This property is ignored for virtual machines.
     allocation.set_element_limit(
         -1)  # If set to -1, then there is no fixed limit on resource usage (only bounded by available resources and shares). Units are MB for memory, MHz for CPU.
@@ -77,6 +95,7 @@ def set_vm_reservation(server, types, vm_name, reservation, level):
     elif types == 'memory':
         spec.set_element_memoryAllocation(allocation)
 
+    print request
     request.Spec = spec
     ret = server._proxy.ReconfigVM_Task(request)._returnval
 
